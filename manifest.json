@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Klero Exention",
+  "version": "2.0",
+  "description": "It will help you to upload your files in Google Drive.",
+  "permissions": [
+    "downloads",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.googleapis.com/*",
+    "https://driveuploaderapi.chandanhans.repl.co/"
+  ],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "options_ui": {
+    "page": "popup.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://ciclade.caissedesdepots.fr/*"
+      ],
+      "js": [
+        "upload.js"
+      ]
+    }
+  ]
+}
