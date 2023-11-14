@@ -3,8 +3,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     fetch("https://driveuploaderapi.chandanhans.repl.co/get_access_token", {
       method: "GET",
       headers: {
-        "api-key": "qHag3wiDzFwgHBTsM9DhPTE6llw5v9SX",
-      },
+        "api-key": "TltdtJXQKwMmRY4SlvOTLO1TXHGkOBwP",
+        'App-Identifier': 'Klero-extention'
+    },
     })
     .then((response) => {
       if (response.status === 200) {
