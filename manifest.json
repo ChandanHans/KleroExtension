@@ -10,7 +10,7 @@
   ],
   "host_permissions": [
     "https://www.googleapis.com/*",
-    "https://driveuploaderapi.chandanhans.repl.co/"
+    "https://driveuploaderapi.onrender.com/"
   ],
   "icons": {
     "16": "icon.png",

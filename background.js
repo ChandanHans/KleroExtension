@@ -1,6 +1,6 @@
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "getAccessToken") {
-    fetch("https://10c22397-7ff8-474d-a2c8-c12ff48fecfc-00-15alyngotgdox.asia-b.replit.dev/get_access_token", {
+    fetch("https://driveuploaderapi.onrender.com/get_access_token", {
       method: "GET",
       headers: {
         "api-key": "TltdtJXQKwMmRY4SlvOTLO1TXHGkOBwP",
