@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Klero Exention",
-  "version": "2.5",
+  "version": "3.0",
   "description": "It will help you to upload your files in Google Drive.",
   "permissions": [
     "downloads",
