@@ -13,13 +13,13 @@ document.addEventListener("DOMContentLoaded", function () {
     getAccessToken().then((accessToken) => {
       if (accessToken) {
         getRowByEmail(sheetId, accessToken, email)
-          .then((row) => {
-            if (row) {
-              console.log("Found row:", row);
+          .then((notary_row) => {
+            if (notary_row) {
+              console.log("Found row:", notary_row);
               chrome.storage.local.set(
                 {
                   email: email,
-                  folderId: row[2],
+                  folderId: notary_row[3],
                 },
                 function () {
                   window.close();
@@ -40,11 +40,9 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 async function getRowByEmail(sheetId, accessToken, email) {
   // The A1 notation of the range to search for value
-  const range = "B:D"; // Adjust if your data range is different
-
   try {
     const response = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?majorDimension=ROWS`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values`,
       {
         method: "GET",
         headers: {
@@ -64,7 +62,7 @@ async function getRowByEmail(sheetId, accessToken, email) {
 
     // Find the row with the matching value in the first column
     const matchingRow = rows.find(
-      (row) => row.length > 0 && row[0].toLowerCase() === email.toLowerCase()
+      (row) => row.length > 1 && row[1].toLowerCase() === email.toLowerCase()
     );
 
     if (matchingRow) {
