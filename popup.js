@@ -40,9 +40,11 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 async function getRowByEmail(sheetId, accessToken, email) {
   // The A1 notation of the range to search for value
+  const range = "A:Z";
+
   try {
     const response = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?majorDimension=ROWS`,
       {
         method: "GET",
         headers: {
