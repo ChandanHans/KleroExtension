@@ -1,10 +1,9 @@
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "getAccessToken") {
-    fetch("https://kleroapi.onrender.com/get_access_token", {
-      method: "GET",
+    fetch("https://kleroapi.onrender.com/access_token", {
+      method: "POST",
       headers: {
-        "api-key": "TltdtJXQKwMmRY4SlvOTLO1TXHGkOBwP",
-        'App-Identifier': 'Klero-extention'
+        "api-key": "TltdtJXQKwMmRY4SlvOTLO1TXHGkOBwP"
     },
     })
     .then((response) => {
