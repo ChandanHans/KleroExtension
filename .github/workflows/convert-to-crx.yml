@@ -1,0 +1,34 @@
+name: Convert to CRX
+
+on:
+  push:
+    branches:
+      - main  # Change this to your default branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    - name: Install NPM dependencies
+      run: npm install
+
+    - name: Create CRX file
+      run: |
+        npm install -g crx
+        mkdir -p dist
+        crx pack . -o dist/extension.crx
+
+    - name: Upload CRX file
+      uses: actions/upload-artifact@v3
+      with:
+        name: extension-crx
+        path: dist/extension.crx
