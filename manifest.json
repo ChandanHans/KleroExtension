@@ -10,7 +10,7 @@
   ],
   "host_permissions": [
     "https://www.googleapis.com/*",
-    "https://driveuploaderapi.onrender.com/"
+    "https://kleroapi.onrender.com/"
   ],
   "icons": {
     "16": "icon.png",
