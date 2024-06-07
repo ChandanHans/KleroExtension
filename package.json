@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/ChandanHans/KleroExtension#readme",
   "dependencies": {
-    "crx": "^4.2.0",
+    "crx": "^4.0.0",
     "webpack": "^5.0.0",
     "webpack-cli": "^4.0.0",
     "webpack-dev-server": "^3.11.0"
