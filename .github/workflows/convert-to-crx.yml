@@ -25,7 +25,7 @@ jobs:
       run: |
         npm install -g crx
         mkdir -p dist
-        crx pack . -o dist/extension.crx --key ./key.pem
+        crx pack . -o dist/extension.crx --key=./key.pem
 
     - name: Upload CRX file
       uses: actions/upload-artifact@v3
