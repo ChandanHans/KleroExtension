@@ -1,6 +1,6 @@
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "getAccessToken") {
-    fetch("https://kleroapi.onrender.com/access_token", {
+    fetch("https://kleroapi.onrender.com/access-token", {
       method: "POST",
       headers: {
         "api-key": "TltdtJXQKwMmRY4SlvOTLO1TXHGkOBwP"
