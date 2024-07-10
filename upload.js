@@ -1,5 +1,6 @@
 var accessToken;
-var parentFolderId;
+var parentFolderId1;
+var parentFolderId2;
 
 function setAccessToken() {
   return new Promise(async (resolve) => {
@@ -17,14 +18,11 @@ function setAccessToken() {
   });
 }
 
-
-
-async function getAllFolders() {
+async function getAllFolders(parentFolderId) {
   let nextPageToken = "";
   var foldersObject = {};
   while (true) {
     try {
-      // Use the nextPageToken to paginate through the results.
       const response = await fetch(
         `https://www.googleapis.com/drive/v3/files?q='${parentFolderId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&pageToken=${nextPageToken}`,
         {
@@ -33,41 +31,62 @@ async function getAllFolders() {
             Authorization: `Bearer ${accessToken}`,
           },
         }
-        );
+      );
       if (response.ok) {
         const data = await response.json();
         const folders = data.files;
-        
         if (folders.length > 0) {
           folders.forEach((folder) => {
             foldersObject[folder.name] = folder.id;
           });
         }
 
-        // Check if there are more results to fetch.
         if (data.nextPageToken) {
           nextPageToken = data.nextPageToken;
         } else {
-          break; // No more results to fetch.
+          break;
         }
       } else {
         console.log("Error listing folders:", response.statusText);
-        break; // Stop fetching results on error.
+        break;
       }
     } catch (error) {
       console.log("Error listing folders:", error);
-      break; // Stop fetching results on error.
+      break;
     }
   }
   return foldersObject;
 }
 
-async function getTargetFolderId(name) {
-  var folders = await getAllFolders();
+async function getTargetFolderId(name, parentFolderId) {
+  var folders = await getAllFolders(parentFolderId);
   for (var folder in folders) {
     if (folder.toLowerCase().includes(name.toLowerCase())) {
       return folders[folder];
     }
+  }
+}
+
+async function moveFolder(folderId) {
+  try {
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${folderId}?addParents=${parentFolderId2}&removeParents=${parentFolderId1}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.ok) {
+      console.log("Folder moved successfully.");
+    } else {
+      console.log("Error moving folder:", response.statusText);
+    }
+  } catch (error) {
+    console.log("Error moving folder:", error);
   }
 }
 
@@ -78,9 +97,10 @@ async function uploadToDrive() {
     );
     if (element) {
       var name = element.textContent;
-      var folderId = await getTargetFolderId(name);
+      var folderId = await getTargetFolderId(name, parentFolderId1);
+      console.log(folderId);
+
       if (folderId) {
-        // Select all the anchor elements inside the form
         const anchorElements = document.querySelectorAll(
           '.form-custom a[role="button"]'
         );
@@ -89,11 +109,13 @@ async function uploadToDrive() {
           const downloadLink = element.getAttribute("href");
           await uploadFileToDrive(accessToken, downloadLink, folderId);
         }
-
+        if (folderId) {
+          await moveFolder(folderId);
+        }
         resolve(true);
       } else {
-        if(!parentFolderId){
-          alert("Please Enter your Email in the Extention.");
+        if (!parentFolderId1 && !parentFolderId2) {
+          alert("Please Enter your Email in the Extension.");
         } else {
           alert("Folder not found for this Client.");
         }
@@ -113,7 +135,7 @@ function getFileName(response) {
       return matches[1];
     }
   }
-  return null; // No filename found in the headers
+  return null;
 }
 
 async function downloadFile(url) {
@@ -125,10 +147,10 @@ async function downloadFile(url) {
         "Failed to fetch PDF file: " +
         response.status +
         " " +
-          response.statusText
-          );
+        response.statusText
+      );
     }
-    
+
     const fileName = getFileName(response);
     const fileBlob = await response.blob();
     return { fileBlob, fileName };
@@ -137,10 +159,11 @@ async function downloadFile(url) {
     return { fileBlob: null, fileName: null };
   }
 }
+
 async function checkFileExistence(token, folderId, fileName) {
   const apiUrl = `https://www.googleapis.com/drive/v3/files`;
   const query = `'${folderId}' in parents and name = '${fileName}' and trashed = false`;
-  
+
   try {
     const response = await fetch(`${apiUrl}?q=${encodeURIComponent(query)}`, {
       method: "GET",
@@ -148,11 +171,10 @@ async function checkFileExistence(token, folderId, fileName) {
         Authorization: "Bearer " + token,
       },
     });
-    
+
     if (response.ok) {
       const result = await response.json();
       if (result.files && result.files.length > 0) {
-        // File with the same name exists in the folder
         return result.files[0].id;
       }
     } else {
@@ -162,9 +184,9 @@ async function checkFileExistence(token, folderId, fileName) {
     console.log("Error checking file existence:", error);
   }
 
-  // File doesn't exist or an error occurred
   return null;
 }
+
 async function uploadFileToDrive(token, pdfFileURL, folderId) {
   return new Promise(async (resolve) => {
     try {
@@ -174,7 +196,7 @@ async function uploadFileToDrive(token, pdfFileURL, folderId) {
           token,
           folderId,
           fileName
-          );
+        );
         if (existingFileId) {
           console.log("File already exists. Skipping upload.");
           resolve(true);
@@ -182,19 +204,19 @@ async function uploadFileToDrive(token, pdfFileURL, folderId) {
           const boundary = "-------314159265358979323846";
           const delimiter = "\r\n--" + boundary + "\r\n";
           const closeDelim = "\r\n--" + boundary + "--";
-          
+
           const metadata = {
             name: fileName,
             mimeType: "application/pdf",
             parents: [folderId],
           };
-          
+
           const base64Data = await blobToBase64(fileBlob);
-          
+
           const multipartRequestBody =
-          delimiter +
-          "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
-          JSON.stringify(metadata) +
+            delimiter +
+            "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+            JSON.stringify(metadata) +
             delimiter +
             "Content-Type: " +
             metadata.mimeType +
@@ -202,21 +224,21 @@ async function uploadFileToDrive(token, pdfFileURL, folderId) {
             "Content-Transfer-Encoding: base64\r\n\r\n" +
             base64Data +
             closeDelim;
-            
-            const response = await fetch(
+
+          const response = await fetch(
             "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
             {
               method: "POST",
               headers: {
                 Authorization: "Bearer " + token,
                 "Content-Type":
-                'multipart/related; boundary="' + boundary + '"',
+                  'multipart/related; boundary="' + boundary + '"',
               },
               body: multipartRequestBody,
             }
-            );
+          );
 
-            if (response.ok) {
+          if (response.ok) {
             const result = await response.json();
             console.log("PDF file uploaded successfully:", result);
             resolve(true);
@@ -248,59 +270,95 @@ async function blobToBase64(blob) {
 function addButton(element) {
   const button = document.createElement("button");
   button.id = "uploadButton";
-  button.innerText = "Upload To Drive";
+  button.innerText = "Loading...";
   button.style.fontWeight = "bold";
-  button.style.backgroundColor = "#a9d8ef";
+  button.style.backgroundColor = "#F44336"; // Red color for initial disabled state
+  button.disabled = true;
   button.style.color = "#000";
   button.style.border = "none";
   button.style.width = "225px";
   button.style.height = "45px";
+
   button.addEventListener("mouseenter", function () {
-    button.style.backgroundColor = "#87adbf";
+    if (!button.disabled) {
+      button.style.backgroundColor = "#87adbf";
+    }
   });
 
   button.addEventListener("mouseleave", function () {
-    button.style.backgroundColor = "#a9d8ef";
+    if (!button.disabled) {
+      button.style.backgroundColor = "#a9d8ef";
+    }
   });
-  button.addEventListener("click", function () {
+
+  button.addEventListener("click", async function () {
     button.disabled = true;
     button.style.backgroundColor = "#59727d";
     button.innerText = "Uploading...";
-    chrome.storage.local.get(["folderId"], async function (data) {
-      parentFolderId = data.folderId;
-      await setAccessToken();
-      const success = await uploadToDrive();
-      if (success) {
-        button.innerText = "Uploaded";
-      } else {
-        button.innerText = "Upload Failed";
-        button.disabled = false;
-      }
-    });
+    const success = await uploadToDrive();
+    if (success) {
+      button.innerText = "Uploaded";
+      button.style.backgroundColor = "#4CAF50"; // Green color for uploaded state
+    } else {
+      button.innerText = "Upload Failed";
+      button.disabled = false;
+      button.style.backgroundColor = "#F44336"; // Red color for failed state
+    }
   });
   element.querySelector("section").appendChild(button);
 }
 
-// Function to handle page changes
+async function checkFolderInTarget() {
+  const element = document.querySelector(
+    ".table-request-display tbody tr td:nth-child(2)"
+  );
+  if (element) {
+    var name = element.textContent;
+    var folderId2 = await getTargetFolderId(name, parentFolderId2);
+
+    if (folderId2) {
+      const button = document.getElementById("uploadButton");
+      button.innerText = "Uploaded";
+      button.disabled = true;
+      button.style.backgroundColor = "#4CAF50"; // Green color for uploaded state
+      button.removeEventListener("mouseenter", function () {
+        button.style.backgroundColor = "#87adbf";
+      });
+      button.removeEventListener("mouseleave", function () {
+        button.style.backgroundColor = "#a9d8ef";
+      });
+    } else {
+      const button = document.getElementById("uploadButton");
+      button.disabled = false;
+      button.style.backgroundColor = "#a9d8ef"; // Default color for enabled state
+      button.innerText = "Upload To Drive";
+    }
+  }
+}
+
 function handlePageChange() {
   observer.observe(document, { childList: true, subtree: true });
 }
 
 // Use a MutationObserver to wait for the specific element to appear
-const observer = new MutationObserver(function (mutationsList, observer) {
+const observer = new MutationObserver(async function (mutationsList, observer) {
   const element = document.getElementsByClassName(
     "row row-wrapper-has-btm-margin"
-    )[0];
-    
-    if (element) {
-    // The element is now present on the page, so we can call the action
+  )[0];
+
+  if (element) {
     const element = document.getElementsByClassName(
       "row row-wrapper-has-btm-margin"
     )[0];
     if (element) {
       addButton(element);
+      chrome.storage.local.get(["folderId1", "folderId2"], async function (data) {
+        parentFolderId1 = data.folderId1;
+        parentFolderId2 = data.folderId2;
+        await setAccessToken();     
+        await checkFolderInTarget();
+      });
     }
-    // Disconnect the observer as it's no longer needed
     observer.disconnect();
   }
 });

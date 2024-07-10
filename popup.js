@@ -19,7 +19,8 @@ document.addEventListener("DOMContentLoaded", function () {
               chrome.storage.local.set(
                 {
                   email: email,
-                  folderId: notary_row[4],
+                  folderId1: notary_row[4],
+                  folderId2: notary_row[5],
                 },
                 function () {
                   window.close();
