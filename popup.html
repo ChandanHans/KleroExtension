@@ -5,74 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 16px;
-            width: 280px;
-            /* Fixed width to avoid resizing */
-            background-color: #2c2f33;
-            color: #ffffff;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        input[type="text"],
-        input[type="file"] {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-            margin-bottom: 12px;
-            background-color: #383c41;
-            border: 1px solid #72767d;
-            color: #ffffff;
-        }
-
-        button {
-            width: 100%;
-            padding: 8px 12px;
-            background-color: #4CAF50;
-            color: #FFF;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        #chooseFileButton {
-            width: 100%;
-            padding: 8px 12px;
-            background-color: #3B3E44;
-            color: #FFF;
-            border: 1px solid #72767d;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 8px;
-            /* Add some space between the filename and the button */
-            margin-bottom: 12px;
-            /* Add some space between this button and the "Save" button */
-        }
-
-        #chooseFileButton:hover {
-            background-color: #464B51;
-        }
-        
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
     <label for="email">Email:</label>
     <input type="text" id="email">
+    
+    <label for="password">Password:</label>
+    <input type="password" id="password">
 
     <button id="save">Save</button>
     <script src="popup.js"></script>

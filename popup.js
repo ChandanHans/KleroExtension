@@ -2,15 +2,17 @@ var accessToken;
 var sheetId = "1lMTB8XEU0POkcJoclLLxZtWp5Yk_fBDAlV_-R2-QZcg";
 document.addEventListener("DOMContentLoaded", function () {
   // Load previously saved data into the input fields (if any)
-  chrome.storage.local.get(["email"], function (data) {
+  chrome.storage.local.get(["email", "password"], function (data) {
     document.getElementById("email").value = data.email || "";
+    document.getElementById("password").value = data.password || "";
   });
 
   // Save button logic
   document.getElementById("save").addEventListener("click", function () {
     let email = document.getElementById("email").value;
+    let password = document.getElementById("password").value;
     // Store data
-    getAccessToken().then((accessToken) => {
+    getAccessToken(password).then((accessToken) => {
       if (accessToken) {
         getRowByEmail(sheetId, accessToken, email)
           .then((notary_row) => {
@@ -19,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
               chrome.storage.local.set(
                 {
                   email: email,
+                  password: password,
                   folderId1: notary_row[4],
                   folderId2: notary_row[5],
                 },
@@ -39,6 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
+
 async function getRowByEmail(sheetId, accessToken, email) {
   // The A1 notation of the range to search for value
   const range = "A:Z";
@@ -82,10 +86,10 @@ async function getRowByEmail(sheetId, accessToken, email) {
   }
 }
 
-function getAccessToken() {
+function getAccessToken(password) {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage(
-      { action: "getAccessToken" },
+      { action: "getAccessToken", password: password },
       function (response) {
         if (response) {
           resolve(response);
