@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Klero Exension",
   "version": "4.0",
-  "description": "It will help you to upload your files in Google Drive.",
+  "description": "It will help you to upload your files in Google Drive for Klero.",
   "permissions": [
     "downloads",
     "activeTab",

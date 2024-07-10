@@ -473,33 +473,39 @@ function initObserverForRows() {
  * Adds a message cell to a row.
  * @param {Element} row - The row to which the message cell will be added.
  */
-async function addMessageCell(row) {
+async   function addMessageCell(row) {
   // Check if the row already has a message cell
   if (!row.querySelector('.message-cell')) {
     const newCell = row.insertCell(-1); // Insert at the end of the row
-    newCell.textContent = "Loading...";
-    newCell.classList.add('message-cell'); // Add a class to identify message cells
-    newCell.style.fontWeight = "bold";
-    newCell.style.padding = "10px";
-    newCell.style.textAlign = "center";
+    const messageContainer = document.createElement('span');
+    messageContainer.classList.add('message-cell'); // Add a class to identify message cells
+
+    // Fixed dimensions
+    messageContainer.style.display = "inline-block";
+    messageContainer.style.width = "80px"; // Fixed width
+    messageContainer.style.padding = "5px"; // Adjust padding as needed
+    messageContainer.style.borderRadius = "4px"; // Rounded corners for a softer look
+    messageContainer.style.fontWeight = "bold";
+    messageContainer.style.textAlign = "center"; // Center the text
+    messageContainer.style.color = "#fff"; // White text color
 
     let name = row.querySelector("td:nth-child(2)").innerText;
 
     if (await getTargetFolderId(name, parentFolderId1)) {
-      newCell.textContent = "Not Uploaded";
-      newCell.style.backgroundColor = "#F44336";
-      newCell.style.color = "#fff";
+      messageContainer.textContent = "Pending"; // Abbreviation for "Not Uploaded"
+      messageContainer.style.backgroundColor = "#E74C3C"; // Example theme color for not uploaded
     } else if (await getTargetFolderId(name, parentFolderId2)) {
-      newCell.textContent = "Uploaded";
-      newCell.style.backgroundColor = "#4CAF50";
-      newCell.style.color = "#fff";
+      messageContainer.textContent = "Done";
+      messageContainer.style.backgroundColor = "#27AE60"; // Example theme color for uploaded
     } else {
-      newCell.textContent = "Not For Klero";
-      newCell.style.backgroundColor = "#9E9E9E";
-      newCell.style.color = "#fff";
+      messageContainer.textContent = "N/A"; // Abbreviation for "Not For Klero"
+      messageContainer.style.backgroundColor = "#7F8C8D"; // Example theme color for not applicable
     }
+
+    newCell.appendChild(messageContainer);
   }
 }
+
 
 /**
  * Runs the function for pages containing element2.
