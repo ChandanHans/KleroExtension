@@ -2,6 +2,9 @@ var accessToken;
 var parentFolderId1;
 var parentFolderId2;
 
+/**
+ * Sets the access token by sending a message to the background script.
+ */
 function setAccessToken() {
   return new Promise(async (resolve) => {
     chrome.runtime.sendMessage(
@@ -18,6 +21,11 @@ function setAccessToken() {
   });
 }
 
+/**
+ * Fetches all folders under a parent folder from Google Drive.
+ * @param {string} parentFolderId - The ID of the parent folder.
+ * @returns {Object} - An object mapping folder names to their IDs.
+ */
 async function getAllFolders(parentFolderId) {
   let nextPageToken = "";
   var foldersObject = {};
@@ -58,6 +66,12 @@ async function getAllFolders(parentFolderId) {
   return foldersObject;
 }
 
+/**
+ * Gets the folder ID for a target folder by name.
+ * @param {string} name - The name of the target folder.
+ * @param {string} parentFolderId - The ID of the parent folder.
+ * @returns {string} - The ID of the target folder.
+ */
 async function getTargetFolderId(name, parentFolderId) {
   var folders = await getAllFolders(parentFolderId);
   for (var folder in folders) {
@@ -67,6 +81,10 @@ async function getTargetFolderId(name, parentFolderId) {
   }
 }
 
+/**
+ * Moves a folder from parentFolderId1 to parentFolderId2.
+ * @param {string} folderId - The ID of the folder to move.
+ */
 async function moveFolder(folderId) {
   try {
     const response = await fetch(
@@ -90,6 +108,9 @@ async function moveFolder(folderId) {
   }
 }
 
+/**
+ * Uploads files to Google Drive.
+ */
 async function uploadToDrive() {
   return new Promise(async (resolve) => {
     const element = document.querySelector(
@@ -127,6 +148,11 @@ async function uploadToDrive() {
   });
 }
 
+/**
+ * Extracts the file name from the response headers.
+ * @param {Response} response - The fetch response.
+ * @returns {string|null} - The file name or null if not found.
+ */
 function getFileName(response) {
   const contentDisposition = response.headers.get("Content-Disposition");
   if (contentDisposition) {
@@ -138,6 +164,11 @@ function getFileName(response) {
   return null;
 }
 
+/**
+ * Downloads a file from the given URL.
+ * @param {string} url - The URL of the file to download.
+ * @returns {Object} - An object containing the file blob and file name.
+ */
 async function downloadFile(url) {
   try {
     const response = await fetch(url);
@@ -145,9 +176,9 @@ async function downloadFile(url) {
     if (!response.ok) {
       throw new Error(
         "Failed to fetch PDF file: " +
-        response.status +
-        " " +
-        response.statusText
+          response.status +
+          " " +
+          response.statusText
       );
     }
 
@@ -160,6 +191,13 @@ async function downloadFile(url) {
   }
 }
 
+/**
+ * Checks if a file with the same name already exists in the target folder.
+ * @param {string} token - The access token.
+ * @param {string} folderId - The ID of the target folder.
+ * @param {string} fileName - The name of the file to check.
+ * @returns {string|null} - The ID of the existing file or null if not found.
+ */
 async function checkFileExistence(token, folderId, fileName) {
   const apiUrl = `https://www.googleapis.com/drive/v3/files`;
   const query = `'${folderId}' in parents and name = '${fileName}' and trashed = false`;
@@ -187,6 +225,12 @@ async function checkFileExistence(token, folderId, fileName) {
   return null;
 }
 
+/**
+ * Uploads a file to Google Drive.
+ * @param {string} token - The access token.
+ * @param {string} pdfFileURL - The URL of the file to upload.
+ * @param {string} folderId - The ID of the target folder.
+ */
 async function uploadFileToDrive(token, pdfFileURL, folderId) {
   return new Promise(async (resolve) => {
     try {
@@ -258,6 +302,11 @@ async function uploadFileToDrive(token, pdfFileURL, folderId) {
   });
 }
 
+/**
+ * Converts a Blob to a base64 string.
+ * @param {Blob} blob - The Blob to convert.
+ * @returns {Promise<string>} - The base64 string.
+ */
 async function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -267,6 +316,10 @@ async function blobToBase64(blob) {
   });
 }
 
+/**
+ * Adds the upload button to the page.
+ * @param {Element} element - The parent element to which the button will be added.
+ */
 function addButton(element) {
   const button = document.createElement("button");
   button.id = "uploadButton";
@@ -308,6 +361,9 @@ function addButton(element) {
   element.querySelector("section").appendChild(button);
 }
 
+/**
+ * Checks if a folder exists in the target parent folder (parentFolderId2).
+ */
 async function checkFolderInTarget() {
   const element = document.querySelector(
     ".table-request-display tbody tr td:nth-child(2)"
@@ -336,31 +392,122 @@ async function checkFolderInTarget() {
   }
 }
 
+/**
+ * Handles page changes by observing mutations in the DOM.
+ */
 function handlePageChange() {
   observer.observe(document, { childList: true, subtree: true });
 }
 
-// Use a MutationObserver to wait for the specific element to appear
-const observer = new MutationObserver(async function (mutationsList, observer) {
+/**
+ * Initializes the appropriate function based on the page content.
+ */
+function init() {
+  const element1 = document.getElementsByClassName(
+    "row row-wrapper-has-btm-margin"
+  )[0];
+  const element2 = document.getElementsByClassName(
+    "table table-rwd table-request-display ng-isolate-scope dataTable no-footer"
+  )[0];
+
+  if (element1 || element2) {
+    chrome.storage.local.get(["folderId1", "folderId2"], async function (data) {
+      parentFolderId1 = data.folderId1;
+      parentFolderId2 = data.folderId2;
+      await setAccessToken();
+      if (element1) {
+        runFunctionForElement1();
+      } else if (element2) {
+        runFunctionForElement2();
+      }
+    });
+
+    observer.disconnect();
+  }
+}
+
+/**
+ * Runs the function for pages containing element1.
+ */
+function runFunctionForElement1() {
   const element = document.getElementsByClassName(
     "row row-wrapper-has-btm-margin"
   )[0];
+  addButton(element);
+  checkFolderInTarget();
+}
 
-  if (element) {
-    const element = document.getElementsByClassName(
-      "row row-wrapper-has-btm-margin"
-    )[0];
-    if (element) {
-      addButton(element);
-      chrome.storage.local.get(["folderId1", "folderId2"], async function (data) {
-        parentFolderId1 = data.folderId1;
-        parentFolderId2 = data.folderId2;
-        await setAccessToken();     
-        await checkFolderInTarget();
-      });
-    }
-    observer.disconnect();
+/**
+ * Initializes the MutationObserver for rows.
+ */
+function initObserverForRows() {
+  const tableBody = document.querySelector(".table-request-display tbody");
+
+  if (tableBody) {
+    const config = { childList: true };
+
+    const callback = function(mutationsList) {
+      for (const mutation of mutationsList) {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeType === 1 && node.tagName === 'TR') {
+              addMessageCell(node);
+            }
+          });
+        }
+      }
+    };
+
+    const observer = new MutationObserver(callback);
+    observer.observe(tableBody, config);
   }
+}
+
+/**
+ * Adds a message cell to a row.
+ * @param {Element} row - The row to which the message cell will be added.
+ */
+async function addMessageCell(row) {
+  // Check if the row already has a message cell
+  if (!row.querySelector('.message-cell')) {
+    const newCell = row.insertCell(-1); // Insert at the end of the row
+    newCell.textContent = "Loading...";
+    newCell.classList.add('message-cell'); // Add a class to identify message cells
+    newCell.style.fontWeight = "bold";
+    newCell.style.padding = "10px";
+    newCell.style.textAlign = "center";
+
+    let name = row.querySelector("td:nth-child(2)").innerText;
+
+    if (await getTargetFolderId(name, parentFolderId1)) {
+      newCell.textContent = "Not Uploaded";
+      newCell.style.backgroundColor = "#F44336";
+      newCell.style.color = "#fff";
+    } else if (await getTargetFolderId(name, parentFolderId2)) {
+      newCell.textContent = "Uploaded";
+      newCell.style.backgroundColor = "#4CAF50";
+      newCell.style.color = "#fff";
+    } else {
+      newCell.textContent = "Not For Klero";
+      newCell.style.backgroundColor = "#9E9E9E";
+      newCell.style.color = "#fff";
+    }
+  }
+}
+
+/**
+ * Runs the function for pages containing element2.
+ */
+function runFunctionForElement2() {
+  initObserverForRows();
+  
+  const rows = document.querySelectorAll(".table-request-display tbody tr");
+  rows.forEach(row => addMessageCell(row));
+}
+
+// Use a MutationObserver to wait for the specific element to appear
+const observer = new MutationObserver(async function (mutationsList, observer) {
+  init();
 });
 
 window.addEventListener("popstate", handlePageChange);
