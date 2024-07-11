@@ -143,8 +143,7 @@ async function uploadFileToDrive(token, pdfFileURL, folderId) {
           );
 
           if (response.ok) {
-            const result = await response.json();
-            console.log("PDF file uploaded successfully:", result);
+            console.log("PDF file uploaded successfully:");
             resolve(true);
           } else {
             console.log("Error uploading PDF file:", response.statusText);
@@ -248,7 +247,6 @@ async function uploadToDrive() {
       if (element) {
         var name = element.textContent;
         var folderId = await getTargetFolderId(name, parentFolderId1);
-        console.log(folderId);
   
         if (folderId) {
           const anchorElements = document.querySelectorAll(
