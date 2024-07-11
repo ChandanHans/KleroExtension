@@ -2,12 +2,8 @@
   "manifest_version": 3,
   "name": "Klero Exension",
   "version": "4.0",
-  "description": "It will help you to upload your files in Google Drive for Klero.",
-  "permissions": [
-    "downloads",
-    "activeTab",
-    "storage"
-  ],
+  "description": "This extension helps you to upload and manage your files in Google Drive for Klero.",
+  "permissions": ["downloads", "activeTab", "storage"],
   "host_permissions": [
     "https://www.googleapis.com/*",
     "https://kleroapi.onrender.com/"
@@ -34,12 +30,8 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://ciclade.caissedesdepots.fr/*"
-      ],
-      "js": [
-        "upload.js"
-      ]
+      "matches": ["https://ciclade.caissedesdepots.fr/*"],
+      "js": ["auth.js", "drive.js", "ui.js", "main.js"]
     }
   ]
 }
