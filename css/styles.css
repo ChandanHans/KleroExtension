@@ -6,6 +6,19 @@ body {
     color: #ffffff;
 }
 
+.content {
+    width: 100%;
+    max-width: 280px;
+    text-align: center;
+}
+
+.center-image {
+    display: block;
+    margin: 0 auto 16px auto;
+    width: 50px; /* Adjust the width as needed */
+    height: auto;
+}
+
 label {
     display: block;
     margin-bottom: 10px;

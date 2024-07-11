@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Klero Exension",
+  "name": "Klero Extension",
   "version": "4.0",
   "description": "This extension helps you to upload and manage your files in Google Drive for Klero.",
   "permissions": ["downloads", "activeTab", "storage"],
@@ -9,29 +9,29 @@
     "https://kleroapi.onrender.com/"
   ],
   "icons": {
-    "16": "icon.png",
-    "48": "icon.png",
-    "128": "icon.png"
+    "16": "assets/icon.png",
+    "48": "assets/icon.png",
+    "128": "assets/icon.png"
   },
   "options_ui": {
-    "page": "popup.html",
+    "page": "views/popup.html",
     "open_in_tab": true
   },
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "views/popup.html",
     "default_icon": {
-      "16": "icon.png",
-      "48": "icon.png",
-      "128": "icon.png"
+      "16": "assets/icon.png",
+      "48": "assets/icon.png",
+      "128": "assets/icon.png"
     }
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "js/background.js"
   },
   "content_scripts": [
     {
       "matches": ["https://ciclade.caissedesdepots.fr/*"],
-      "js": ["auth.js", "drive.js", "ui.js", "main.js"]
+      "js": ["js/auth.js", "js/drive.js", "js/ui.js", "js/main.js"]
     }
   ]
 }
