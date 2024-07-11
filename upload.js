@@ -327,44 +327,38 @@ async function blobToBase64(blob) {
  * @param {Element} element - The parent element to which the button will be added.
  */
 function addButton(element) {
-  const button = document.createElement("button");
-  button.id = "uploadButton";
-  button.innerText = "Loading...";
-  button.style.fontWeight = "bold";
-  button.style.backgroundColor = "#F44336"; // Red color for initial disabled state
-  button.disabled = true;
-  button.style.color = "#000";
-  button.style.border = "none";
-  button.style.width = "225px";
-  button.style.height = "45px";
-
-  button.addEventListener("mouseenter", function () {
-    if (!button.disabled) {
-      button.style.backgroundColor = "#87adbf";
-    }
-  });
-
-  button.addEventListener("mouseleave", function () {
-    if (!button.disabled) {
-      button.style.backgroundColor = "#a9d8ef";
-    }
-  });
-
-  button.addEventListener("click", async function () {
+  if (!document.querySelector("#uploadButton")) {
+    const button = document.createElement("button");
+    element.insertAdjacentElement("beforebegin", button);
+    button.id = "uploadButton";
+    button.innerText = "Loading...";
+    button.style.fontWeight = "bold";
+    button.style.backgroundColor = "#F44336"; // Light blue color for the default state
     button.disabled = true;
-    button.style.backgroundColor = "#59727d";
-    button.innerText = "Uploading...";
-    const success = await uploadToDrive();
-    if (success) {
-      button.innerText = "Uploaded";
-      button.style.backgroundColor = "#4CAF50"; // Green color for uploaded state
-    } else {
-      button.innerText = "Upload Failed";
-      button.disabled = false;
-      button.style.backgroundColor = "#F44336"; // Red color for failed state
-    }
-  });
-  element.querySelector("section").appendChild(button);
+    button.style.color = "#fff"; // White text color
+    button.style.border = "none";
+    button.style.width = "150px"; // Adjusted width to be smaller
+    button.style.height = "40px"; // Adjusted height to be smaller
+    button.style.borderRadius = "4px"; // Rounded corners
+    button.style.textAlign = "center"; // Center text
+    button.style.margin = "10px auto"; // Center horizontally
+    button.style.display = "block"; // Center horizontally
+
+    button.addEventListener("click", async function () {
+      button.disabled = true;
+      button.style.backgroundColor = "#59727d";
+      button.innerText = "Uploading...";
+      const success = await uploadToDrive();
+      if (success) {
+        button.innerText = "Done";
+        button.style.backgroundColor = "#4CAF50"; // Green color for uploaded state
+      } else {
+        button.innerText = "Failed";
+        button.disabled = false;
+        button.style.backgroundColor = "#F44336"; // Red color for failed state
+      }
+    });
+  }
 }
 
 /**
@@ -376,96 +370,34 @@ async function checkFolderInTarget() {
   );
   if (element) {
     var name = element.textContent;
-    var folderId2 = await getTargetFolderId(name, parentFolderId2);
+    var folderId = await getTargetFolderId(name, parentFolderId2);
 
-    if (folderId2) {
-      const button = document.getElementById("uploadButton");
-      button.innerText = "Uploaded";
+    const button = document.getElementById("uploadButton");
+
+    if (folderId) {
+      button.innerText = "Done";
       button.disabled = true;
       button.style.backgroundColor = "#4CAF50"; // Green color for uploaded state
-      button.removeEventListener("mouseenter", function () {
-        button.style.backgroundColor = "#87adbf";
-      });
-      button.removeEventListener("mouseleave", function () {
-        button.style.backgroundColor = "#a9d8ef";
-      });
+      button.removeEventListener("mouseenter", hoverEffect);
+      button.removeEventListener("mouseleave", hoverEffect);
     } else {
-      const button = document.getElementById("uploadButton");
+      button.innerText = "Upload";
       button.disabled = false;
-      button.style.backgroundColor = "#a9d8ef"; // Default color for enabled state
-      button.innerText = "Upload To Drive";
+      button.style.backgroundColor = "#3a60a6"; // Default color for enabled state
+      button.addEventListener("mouseenter", hoverEffect);
+      button.addEventListener("mouseleave", hoverEffect);
     }
   }
 }
 
-/**
- * Handles page changes by observing mutations in the DOM.
- */
-function handlePageChange() {
-  observer.observe(document, { childList: true, subtree: true });
-}
-
-/**
- * Initializes the appropriate function based on the page content.
- */
-function init() {
-  const element1 = document.getElementsByClassName(
-    "row row-wrapper-has-btm-margin"
-  )[0];
-  const element2 = document.getElementsByClassName(
-    "table table-rwd table-request-display ng-isolate-scope dataTable no-footer"
-  )[0];
-
-  if (element1 || element2) {
-    chrome.storage.local.get(["folderId1", "folderId2"], async function (data) {
-      parentFolderId1 = data.folderId1;
-      parentFolderId2 = data.folderId2;
-      await setAccessToken();
-      if (element1) {
-        runFunctionForElement1();
-      } else if (element2) {
-        runFunctionForElement2();
-      }
-    });
-
-    observer.disconnect();
-  }
-}
-
-/**
- * Runs the function for pages containing element1.
- */
-function runFunctionForElement1() {
-  const element = document.getElementsByClassName(
-    "row row-wrapper-has-btm-margin"
-  )[0];
-  addButton(element);
-  checkFolderInTarget();
-}
-
-/**
- * Initializes the MutationObserver for rows.
- */
-function initObserverForRows() {
-  const tableBody = document.querySelector(".table-request-display tbody");
-
-  if (tableBody) {
-    const config = { childList: true };
-
-    const callback = function(mutationsList) {
-      for (const mutation of mutationsList) {
-        if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach(node => {
-            if (node.nodeType === 1 && node.tagName === 'TR') {
-              addMessageCell(node);
-            }
-          });
-        }
-      }
-    };
-
-    const observer = new MutationObserver(callback);
-    observer.observe(tableBody, config);
+function hoverEffect(event) {
+  const button = event.target;
+  if (!button.disabled) {
+    if (event.type === "mouseenter") {
+      button.style.backgroundColor = "#4d7fdb";
+    } else {
+      button.style.backgroundColor = "#3a60a6"; // Match the default color
+    }
   }
 }
 
@@ -473,12 +405,13 @@ function initObserverForRows() {
  * Adds a message cell to a row.
  * @param {Element} row - The row to which the message cell will be added.
  */
-async   function addMessageCell(row) {
+async function addMessageCell(row) {
   // Check if the row already has a message cell
-  if (!row.querySelector('.message-cell')) {
+  if (!row.querySelector(".message-cell")) {
     const newCell = row.insertCell(-1); // Insert at the end of the row
-    const messageContainer = document.createElement('span');
-    messageContainer.classList.add('message-cell'); // Add a class to identify message cells
+    const messageContainer = document.createElement("span");
+    messageContainer.classList.add("message-cell"); // Add a class to identify message cells
+    newCell.appendChild(messageContainer);
 
     // Fixed dimensions
     messageContainer.style.display = "inline-block";
@@ -501,26 +434,105 @@ async   function addMessageCell(row) {
       messageContainer.textContent = "N/A"; // Abbreviation for "Not For Klero"
       messageContainer.style.backgroundColor = "#7F8C8D"; // Example theme color for not applicable
     }
-
-    newCell.appendChild(messageContainer);
   }
 }
 
+/**
+ * Initializes the observer for the `[ng-if='vm.isPaye'] .row` element.
+ */
+function initObserverForElement1() {
+  const element = document.querySelector("[ng-if='vm.isPaye'] .row");
+
+  if (element) {
+    runFunctionForElement1();
+  } else {
+    const observerForElement1 = new MutationObserver(() => {
+      const element = document.querySelector("[ng-if='vm.isPaye'] .row");
+      if (element) {
+        runFunctionForElement1();
+        observerForElement1.disconnect();
+      }
+    });
+    observerForElement1.observe(document, { childList: true, subtree: true });
+  }
+}
+
+/**
+ * Initializes the observer for the `#mes-demandes tbody` element.
+ */
+function initObserverForElement2() {
+  const tableBody = document.querySelector("#mes-demandes tbody");
+
+  if (tableBody) {
+    runFunctionForElement2();
+  } else {
+    const observerForElement2 = new MutationObserver(() => {
+      const tableBody = document.querySelector("#mes-demandes tbody");
+      if (tableBody) {
+        runFunctionForElement2();
+        observerForElement2.disconnect();
+      }
+    });
+    observerForElement2.observe(document, { childList: true, subtree: true });
+  }
+}
+
+/**
+ * Runs the function for pages containing element1.
+ */
+function runFunctionForElement1() {
+  const element = document.querySelector("[ng-if='vm.isPaye'] .row");
+  addButton(element);
+  checkFolderInTarget();
+}
 
 /**
  * Runs the function for pages containing element2.
  */
 function runFunctionForElement2() {
   initObserverForRows();
-  
-  const rows = document.querySelectorAll(".table-request-display tbody tr");
-  rows.forEach(row => addMessageCell(row));
+
+  const rows = document.querySelectorAll("#mes-demandes tbody tr");
+  rows.forEach((row) => addMessageCell(row));
 }
 
-// Use a MutationObserver to wait for the specific element to appear
-const observer = new MutationObserver(async function (mutationsList, observer) {
-  init();
+/**
+ * Initializes the MutationObserver for rows.
+ */
+function initObserverForRows() {
+  const tableBody = document.querySelector("#mes-demandes tbody");
+
+  if (tableBody) {
+    const config = { childList: true };
+
+    const callback = function (mutationsList) {
+      for (const mutation of mutationsList) {
+        if (mutation.type === "childList") {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1 && node.tagName === "TR") {
+              addMessageCell(node);
+            }
+          });
+        }
+      }
+    };
+
+    const observerForRows = new MutationObserver(callback);
+    observerForRows.observe(tableBody, config);
+  }
+}
+
+// Initialize the observers
+chrome.storage.local.get(["folderId1", "folderId2"], function (data) {
+  parentFolderId1 = data.folderId1;
+  parentFolderId2 = data.folderId2;
+  setAccessToken().then(() => {
+    initObserverForElement1();
+    initObserverForElement2();
+  });
 });
 
-window.addEventListener("popstate", handlePageChange);
-handlePageChange();
+window.addEventListener("popstate", function () {
+  initObserverForElement1();
+  initObserverForElement2();
+});
