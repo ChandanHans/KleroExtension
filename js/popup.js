@@ -1,4 +1,3 @@
-var accessToken;
 var sheetId = "1lMTB8XEU0POkcJoclLLxZtWp5Yk_fBDAlV_-R2-QZcg";
 document.addEventListener("DOMContentLoaded", function () {
   // Load previously saved data into the input fields (if any)
