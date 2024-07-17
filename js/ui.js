@@ -34,6 +34,7 @@ function addButton(element) {
         button.innerText = "Failed";
         button.disabled = false;
         button.style.backgroundColor = "#3a60a6";
+        button.style.backgroundColor = "#3a60a6";
       }
     });
   }
