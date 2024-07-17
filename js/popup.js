@@ -1,3 +1,5 @@
+// popup.js
+
 var sheetId = "1lMTB8XEU0POkcJoclLLxZtWp5Yk_fBDAlV_-R2-QZcg";
 document.addEventListener("DOMContentLoaded", function () {
   // Load previously saved data into the input fields (if any)
@@ -12,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let password = document.getElementById("password").value;
     // Store data
     getAccessToken(password).then((accessToken) => {
+      console.log(accessToken);
       if (accessToken) {
         getRowByEmail(sheetId, accessToken, email)
           .then((notary_row) => {
@@ -63,7 +66,6 @@ async function getRowByEmail(sheetId, accessToken, email) {
     }
 
     const data = await response.json();
-    console.log(data);
     const rows = data.values;
 
     // Find the row with the matching value in the first column
@@ -72,7 +74,6 @@ async function getRowByEmail(sheetId, accessToken, email) {
     );
 
     if (matchingRow) {
-      console.log("Matching row:", matchingRow);
       return matchingRow; // Contains the entire row's data
     } else {
       window.close();
@@ -80,7 +81,6 @@ async function getRowByEmail(sheetId, accessToken, email) {
       return null;
     }
   } catch (error) {
-    console.log("Error:", error);
     return null;
   }
 }
@@ -88,10 +88,10 @@ async function getRowByEmail(sheetId, accessToken, email) {
 function getAccessToken(password) {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage(
-      { action: "getAccessToken", password: password },
+      { action: "getAccessToken", password: password , new : true},
       function (response) {
         if (response) {
-          resolve(response);
+          resolve(response.accessToken);
         } else {
           resolve(null);
         }

@@ -31,7 +31,7 @@
   "content_scripts": [
     {
       "matches": ["https://ciclade.caissedesdepots.fr/*"],
-      "js": ["js/auth.js", "js/drive.js", "js/ui.js", "js/main.js"]
+      "js": ["js/drive.js", "js/ui.js", "js/main.js","js/auth.js"]
     }
   ]
 }

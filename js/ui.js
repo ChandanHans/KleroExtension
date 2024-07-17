@@ -9,7 +9,7 @@ function addButton(element) {
     button.id = "uploadButton";
     button.innerText = "Loading...";
     button.style.fontWeight = "bold";
-    button.style.backgroundColor = "#F44336"; // Light blue color for the default state
+    button.style.backgroundColor = "#F44336";
     button.disabled = true;
     button.style.color = "#fff"; // White text color
     button.style.border = "none";
@@ -31,7 +31,7 @@ function addButton(element) {
       } else {
         button.innerText = "Failed";
         button.disabled = false;
-        button.style.backgroundColor = "#F44336"; // Red color for failed state
+        button.style.backgroundColor = "#3a60a6";
       }
     });
   }
@@ -46,7 +46,7 @@ async function checkFolderInTarget() {
   );
   if (element) {
     var name = element.textContent;
-    var folderId = await getTargetFolderId(name, parentFolderId2);
+    var folderId = await getTargetFolderId(name, folder2Group);
     const button = document.getElementById("uploadButton");
 
     if (accessToken) {
@@ -106,10 +106,10 @@ async function addMessageCell(row) {
     if (!accessToken) {
       messageContainer.textContent = "Error"; // Abbreviation for "Not Uploaded"
       messageContainer.style.backgroundColor = "#E74C3C"; // Example theme color for not uploaded
-    } else if (await getTargetFolderId(name, parentFolderId1)) {
+    } else if (await getTargetFolderId(name, folder1Group)) {
       messageContainer.textContent = "Pending"; // Abbreviation for "Not Uploaded"
       messageContainer.style.backgroundColor = "#E74C3C"; // Example theme color for not uploaded
-    } else if (await getTargetFolderId(name, parentFolderId2)) {
+    } else if (await getTargetFolderId(name, folder2Group)) {
       messageContainer.textContent = "Done";
       messageContainer.style.backgroundColor = "#27AE60"; // Example theme color for uploaded
     } else {

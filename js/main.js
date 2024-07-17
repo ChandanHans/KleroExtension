@@ -1,5 +1,7 @@
 var parentFolderId1;
 var parentFolderId2;
+var folder1Group;
+var folder2Group;
 var accessToken;
 
 /**
@@ -91,13 +93,17 @@ function initObserverForRows() {
 chrome.storage.local.get(["folderId1", "folderId2"], function (data) {
   parentFolderId1 = data.folderId1;
   parentFolderId2 = data.folderId2;
-  setAccessToken().then(() => {
+  setAccessToken().then( async () => {
+    folder1Group = await getAllFolders(parentFolderId1);
+    folder2Group = await getAllFolders(parentFolderId2);
     initObserverForElement1();
     initObserverForElement2();
   });
 });
 
-window.addEventListener("popstate", function () {
+window.addEventListener("popstate", async function () {
+  folder1Group = await getAllFolders(parentFolderId1);
+  folder2Group = await getAllFolders(parentFolderId2);
   initObserverForElement1();
   initObserverForElement2();
 });
