@@ -138,3 +138,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // This keeps the message channel open for the asynchronous response
   }
 });
+

@@ -46,12 +46,14 @@ async function getAllFolders(parentFolderId) {
     }
   }
 
+
   return foldersObject;
 }
 
 /**
  * Gets the folder ID for a target folder by name.
  * @param {string} name - The name of the target folder.
+ * @param {string} folders - The folder list.
  * @param {string} folders - The folder list.
  * @returns {string} - The ID of the target folder.
  */
@@ -74,8 +76,7 @@ async function moveFolder(folderId) {
       {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`
         },
       }
     );
@@ -140,6 +141,7 @@ async function uploadFileToDrive(pdfFileURL, folderId) {
               method: "POST",
               headers: {
                 Authorization: "Bearer " + accessToken,
+                Authorization: "Bearer " + accessToken,
                 "Content-Type":
                   'multipart/related; boundary="' + boundary + '"',
               },
@@ -180,6 +182,7 @@ async function checkFileExistence(folderId, fileName) {
     const response = await fetch(`${apiUrl}?q=${encodeURIComponent(query)}`, {
       method: "GET",
       headers: {
+        Authorization: "Bearer " + accessToken,
         Authorization: "Bearer " + accessToken,
       },
     });
