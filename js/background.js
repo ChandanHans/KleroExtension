@@ -125,7 +125,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           .then(encryptedData => decryptData(encryptedData, request.password))
           .then(creds => generateAccessToken(creds))
           .then(accessToken => {
-            const tokenExpiry = Math.floor(Date.now() / 1000) + 3000; // 1 hour from now
+            const tokenExpiry = Math.floor(Date.now() / 1000) + 3000; // 50 min from now
             chrome.storage.local.set({ accessToken: accessToken, tokenExpiry: tokenExpiry });
             sendResponse({ accessToken });
           })
@@ -138,3 +138,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // This keeps the message channel open for the asynchronous response
   }
 });
+

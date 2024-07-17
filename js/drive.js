@@ -46,6 +46,7 @@ async function getAllFolders(parentFolderId) {
     }
   }
 
+
   return foldersObject;
 }
 
@@ -74,8 +75,7 @@ async function moveFolder(folderId) {
       {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`
         },
       }
     );

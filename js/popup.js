@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let password = document.getElementById("password").value;
     // Store data
     getAccessToken(password).then((accessToken) => {
-      console.log(accessToken);
       if (accessToken) {
         getRowByEmail(sheetId, accessToken, email)
           .then((notary_row) => {
@@ -39,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("Error fetching row:", error);
           });
       } else {
-        alert("Error");
+        alert("Wrong password!");
       }
     });
   });
@@ -77,7 +76,7 @@ async function getRowByEmail(sheetId, accessToken, email) {
       return matchingRow; // Contains the entire row's data
     } else {
       window.close();
-      alert("Please contact someone from KLERO.");
+      alert("Please check your email or contact someone from KLERO.");
       return null;
     }
   } catch (error) {
