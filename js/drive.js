@@ -5,18 +5,23 @@
  */
 async function getAllFolders(parentFolderId) {
   let nextPageToken = "";
-  var foldersObject = {};
+  let foldersObject = {};
+  let baseUrl = `https://www.googleapis.com/drive/v3/files`;
+
   while (true) {
+    let url = new URL(baseUrl);
+    url.searchParams.append("q", `'${parentFolderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+    url.searchParams.append("pageToken", nextPageToken);
+    url.searchParams.append("fields", "nextPageToken, files(id, name)");
+
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files?q='${parentFolderId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&pageToken=${nextPageToken}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
       if (response.ok) {
         const data = await response.json();
         const folders = data.files;
@@ -40,17 +45,17 @@ async function getAllFolders(parentFolderId) {
       break;
     }
   }
+
   return foldersObject;
 }
 
 /**
  * Gets the folder ID for a target folder by name.
  * @param {string} name - The name of the target folder.
- * @param {string} parentFolderId - The ID of the parent folder.
+ * @param {string} folders - The folder list.
  * @returns {string} - The ID of the target folder.
  */
-async function getTargetFolderId(name, parentFolderId) {
-  var folders = await getAllFolders(parentFolderId);
+async function getTargetFolderId(name, folders) {
   for (var folder in folders) {
     if (folder.toLowerCase().includes(name.toLowerCase())) {
       return folders[folder];
@@ -77,27 +82,27 @@ async function moveFolder(folderId) {
 
     if (response.ok) {
       console.log("Folder moved successfully.");
+      return true
     } else {
       console.log("Error moving folder:", response.statusText);
     }
   } catch (error) {
     console.log("Error moving folder:", error);
   }
+  return false;
 }
 
 /**
  * Uploads a file to Google Drive.
- * @param {string} token - The access token.
  * @param {string} pdfFileURL - The URL of the file to upload.
  * @param {string} folderId - The ID of the target folder.
  */
-async function uploadFileToDrive(token, pdfFileURL, folderId) {
+async function uploadFileToDrive(pdfFileURL, folderId) {
   return new Promise(async (resolve) => {
     try {
       const { fileBlob, fileName } = await downloadFile(pdfFileURL);
       if (fileBlob && fileName) {
         const existingFileId = await checkFileExistence(
-          token,
           folderId,
           fileName
         );
@@ -134,7 +139,7 @@ async function uploadFileToDrive(token, pdfFileURL, folderId) {
             {
               method: "POST",
               headers: {
-                Authorization: "Bearer " + token,
+                Authorization: "Bearer " + accessToken,
                 "Content-Type":
                   'multipart/related; boundary="' + boundary + '"',
               },
@@ -163,12 +168,11 @@ async function uploadFileToDrive(token, pdfFileURL, folderId) {
 
 /**
  * Checks if a file with the same name already exists in the target folder.
- * @param {string} token - The access token.
  * @param {string} folderId - The ID of the target folder.
  * @param {string} fileName - The name of the file to check.
  * @returns {string|null} - The ID of the existing file or null if not found.
  */
-async function checkFileExistence(token, folderId, fileName) {
+async function checkFileExistence(folderId, fileName) {
   const apiUrl = `https://www.googleapis.com/drive/v3/files`;
   const query = `'${folderId}' in parents and name = '${fileName}' and trashed = false`;
 
@@ -176,7 +180,7 @@ async function checkFileExistence(token, folderId, fileName) {
     const response = await fetch(`${apiUrl}?q=${encodeURIComponent(query)}`, {
       method: "GET",
       headers: {
-        Authorization: "Bearer " + token,
+        Authorization: "Bearer " + accessToken,
       },
     });
 
@@ -240,40 +244,36 @@ async function downloadFile(url) {
  * Uploads files to Google Drive.
  */
 async function uploadToDrive() {
-    return new Promise(async (resolve) => {
-      const element = document.querySelector(
-        ".table-request-display tbody tr td:nth-child(2)"
-      );
-      if (element) {
-        var name = element.textContent;
-        var folderId = await getTargetFolderId(name, parentFolderId1);
-  
-        if (folderId) {
-          const anchorElements = document.querySelectorAll(
-            '.form-custom a[role="button"]'
-          );
-          for (let i = 0; i < anchorElements.length; i++) {
-            const element = anchorElements[i];
-            const downloadLink = element.getAttribute("href");
-            await uploadFileToDrive(accessToken, downloadLink, folderId);
-          }
-          if (folderId) {
-            await moveFolder(folderId);
-          }
-          resolve(true);
-        } else {
-          if (!parentFolderId1 && !parentFolderId2) {
-            alert("Please Enter your Email in the Extension.");
-          } else {
-            alert("Folder not found for this Client.");
-          }
-          resolve(false);
-        }
-      } else {
-        resolve(false);
-      }
-    });
+  const element = document.querySelector(".table-request-display tbody tr td:nth-child(2)");
+  if (!element) {
+    return false;
   }
+
+  const name = element.textContent;
+  const folderId = await getTargetFolderId(name, folder1Group);
+
+  if (!folderId) {
+    if (!parentFolderId1 || !parentFolderId2) {
+      alert("Please Enter your Email in the Extension.");
+    } else {
+      alert("Folder not found for this Client.");
+    }
+    return false;
+  }
+
+  const anchorElements = document.querySelectorAll('.form-custom a[role="button"]');
+
+  for (const element of anchorElements) {
+    const downloadLink = element.getAttribute("href");
+    const uploadSuccess = await uploadFileToDrive(downloadLink, folderId);
+    if (!uploadSuccess) {
+      return false;
+    }
+  }
+
+  return await moveFolder(folderId);
+  
+}
 
 /**
  * Extracts the file name from the response headers.

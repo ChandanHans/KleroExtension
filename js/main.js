@@ -1,44 +1,28 @@
-var parentFolderId1;
-var parentFolderId2;
-var accessToken;
+let parentFolderId1;
+let parentFolderId2;
+let folder1Group;
+let folder2Group;
+let accessToken;
 
 /**
- * Initializes the observer for the `[ng-if='vm.isPaye'] .row` element.
+ * Initializes the observer for a given element.
+ * @param {string} selector - The CSS selector of the target element.
+ * @param {Function} callback - The function to run when the element is found.
  */
-function initObserverForElement1() {
-  const element = document.querySelector("[ng-if='vm.isPaye'] .row");
+function initObserver(selector, callback) {
+  const element = document.querySelector(selector);
 
   if (element) {
-    runFunctionForElement1();
+    callback();
   } else {
-    const observerForElement1 = new MutationObserver(() => {
-      const element = document.querySelector("[ng-if='vm.isPaye'] .row");
+    const observer = new MutationObserver(() => {
+      const element = document.querySelector(selector);
       if (element) {
-        runFunctionForElement1();
-        observerForElement1.disconnect();
+        callback();
+        observer.disconnect();
       }
     });
-    observerForElement1.observe(document, { childList: true, subtree: true });
-  }
-}
-
-/**
- * Initializes the observer for the `#mes-demandes tbody` element.
- */
-function initObserverForElement2() {
-  const tableBody = document.querySelector("#mes-demandes tbody");
-
-  if (tableBody) {
-    runFunctionForElement2();
-  } else {
-    const observerForElement2 = new MutationObserver(() => {
-      const tableBody = document.querySelector("#mes-demandes tbody");
-      if (tableBody) {
-        runFunctionForElement2();
-        observerForElement2.disconnect();
-      }
-    });
-    observerForElement2.observe(document, { childList: true, subtree: true });
+    observer.observe(document, { childList: true, subtree: true });
   }
 }
 
@@ -58,7 +42,7 @@ function runFunctionForElement2() {
   initObserverForRows();
 
   const rows = document.querySelectorAll("#mes-demandes tbody tr");
-  rows.forEach((row) => addMessageCell(row));
+  rows.forEach(row => addMessageCell(row));
 }
 
 /**
@@ -68,36 +52,36 @@ function initObserverForRows() {
   const tableBody = document.querySelector("#mes-demandes tbody");
 
   if (tableBody) {
-    const config = { childList: true };
-
-    const callback = function (mutationsList) {
+    const observerForRows = new MutationObserver(mutationsList => {
       for (const mutation of mutationsList) {
         if (mutation.type === "childList") {
-          mutation.addedNodes.forEach((node) => {
+          mutation.addedNodes.forEach(node => {
             if (node.nodeType === 1 && node.tagName === "TR") {
               addMessageCell(node);
             }
           });
         }
       }
-    };
+    });
 
-    const observerForRows = new MutationObserver(callback);
-    observerForRows.observe(tableBody, config);
+    observerForRows.observe(tableBody, { childList: true });
   }
 }
 
 // Initialize the observers
-chrome.storage.local.get(["folderId1", "folderId2"], function (data) {
+chrome.storage.local.get(["folderId1", "folderId2"], async data => {
   parentFolderId1 = data.folderId1;
   parentFolderId2 = data.folderId2;
-  setAccessToken().then(() => {
-    initObserverForElement1();
-    initObserverForElement2();
-  });
+  await setAccessToken();
+  folder1Group = await getAllFolders(parentFolderId1);
+  folder2Group = await getAllFolders(parentFolderId2);
+  initObserver("[ng-if='vm.isPaye'] .row", runFunctionForElement1);
+  initObserver("#mes-demandes tbody", runFunctionForElement2);
 });
 
-window.addEventListener("popstate", function () {
-  initObserverForElement1();
-  initObserverForElement2();
+window.addEventListener("popstate", async () => {
+  folder1Group = await getAllFolders(parentFolderId1);
+  folder2Group = await getAllFolders(parentFolderId2);
+  initObserver("[ng-if='vm.isPaye'] .row", runFunctionForElement1);
+  initObserver("#mes-demandes tbody", runFunctionForElement2);
 });
