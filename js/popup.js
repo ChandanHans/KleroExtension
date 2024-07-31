@@ -1,6 +1,7 @@
 // popup.js
 
 var sheetId = "1lMTB8XEU0POkcJoclLLxZtWp5Yk_fBDAlV_-R2-QZcg";
+
 document.addEventListener("DOMContentLoaded", function () {
   // Load previously saved data into the input fields (if any)
   chrome.storage.local.get(["email", "password"], function (data) {
@@ -16,26 +17,26 @@ document.addEventListener("DOMContentLoaded", function () {
     getAccessToken(password).then((accessToken) => {
       if (accessToken) {
         getRowByEmail(sheetId, accessToken, email)
-          .then((notary_row) => {
-            if (notary_row) {
-              console.log("Found row:", notary_row);
+          .then((notaryData) => {
+            if (notaryData) {
+              console.log("Found data:", notaryData);
               chrome.storage.local.set(
                 {
                   email: email,
                   password: password,
-                  folderId1: notary_row[4],
-                  folderId2: notary_row[5],
+                  folderId1: notaryData["2.3"],
+                  folderId2: notaryData["2.4"],
                 },
                 function () {
                   window.close();
                 }
               );
             } else {
-              console.log("No matching row found");
+              console.log("No matching data found");
             }
           })
           .catch((error) => {
-            console.log("Error fetching row:", error);
+            console.log("Error fetching data:", error);
           });
       } else {
         alert("Wrong password!");
@@ -45,41 +46,45 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 async function getRowByEmail(sheetId, accessToken, email) {
-  // The A1 notation of the range to search for value
-  const range = "A:Z";
+  const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchGet?ranges=Sheet1`;
 
   try {
-    const response = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?majorDimension=ROWS`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          Accept: "application/json",
-        },
-      }
-    );
+    const response = await fetch(sheetUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+      },
+    });
 
     if (!response.ok) {
       throw new Error("Error fetching data:", response.statusText);
     }
 
     const data = await response.json();
-    const rows = data.values;
+    const rows = data.valueRanges[0].values;
 
-    // Find the row with the matching value in the first column
+    // Find the row with the matching email in the second column
+    const headers = rows[0];
+    const emailIndex = headers.indexOf("Email");
     const matchingRow = rows.find(
-      (row) => row.length > 1 && row[1].toLowerCase() === email.toLowerCase()
+      (row) => row[emailIndex] && row[emailIndex].toLowerCase() === email.toLowerCase()
     );
 
     if (matchingRow) {
-      return matchingRow; // Contains the entire row's data
+      let notaryData = {};
+      headers.forEach((header, index) => {
+        if (index > 1) { // Skip "Name" and "Email" columns
+          notaryData[header] = matchingRow[index];
+        }
+      });
+      return notaryData; // Contains the data indexed by shortcut names
     } else {
-      window.close();
       alert("Please check your email or contact someone from KLERO.");
       return null;
     }
   } catch (error) {
+    console.error("Error fetching data:", error);
     return null;
   }
 }
@@ -87,7 +92,7 @@ async function getRowByEmail(sheetId, accessToken, email) {
 function getAccessToken(password) {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage(
-      { action: "getAccessToken", password: password , new : true},
+      { action: "getAccessToken", password: password, new: true },
       function (response) {
         if (response) {
           resolve(response.accessToken);
