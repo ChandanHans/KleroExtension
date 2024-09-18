@@ -1,12 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Klero Extension",
-  "version": "1.5.0",
+  "version": "2.0.0",
   "description": "This extension helps you to upload and manage your files in Google Drive for Klero.",
   "permissions": ["downloads", "activeTab", "storage"],
   "host_permissions": [
-    "https://www.googleapis.com/*",
-    "https://kleroapi.onrender.com/"
+    "https://www.googleapis.com/*"
   ],
   "icons": {
     "16": "assets/icon.png",

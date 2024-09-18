@@ -8,7 +8,7 @@ async function getAllFolders(parentFolderId) {
   let foldersObject = {};
   let baseUrl = `https://www.googleapis.com/drive/v3/files`;
 
-  while (true) {
+  while (true && parentFolderId) {
     let url = new URL(baseUrl);
     url.searchParams.append("q", `'${parentFolderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
     url.searchParams.append("pageToken", nextPageToken);
@@ -53,13 +53,17 @@ async function getAllFolders(parentFolderId) {
 /**
  * Gets the folder ID for a target folder by name.
  * @param {string} name - The name of the target folder.
- * @param {string} folders - The folder list.
+ * @param {Array} parentFolderList - The folder list.
  * @returns {string} - The ID of the target folder.
  */
-async function getTargetFolderId(name, folders) {
-  for (var folder in folders) {
-    if (folder.toLowerCase().includes(name.toLowerCase())) {
-      return folders[folder];
+async function getTargetFolderId(name, parentFolderList) {
+  var normalizeName = unidecode(name).toLowerCase().replace(/[,\s-]/g, '')
+  for(var folders of parentFolderList){
+    for (var folder in folders) {
+      var normalizeFolderName = unidecode(folder).toLowerCase().replace(/[,\s-]/g, '')
+      if (normalizeFolderName.includes(normalizeName)) {
+        return folders[folder];
+      }
     }
   }
 }
@@ -250,10 +254,9 @@ async function uploadToDrive() {
   }
 
   const name = element.textContent;
-  const folderId = await getTargetFolderId(name, folder1Group);
-
+  const folderId = await getTargetFolderId(name, [folder1Group]);
   if (!folderId) {
-    if (!parentFolderId1 || !parentFolderId2) {
+    if (!accessToken) {
       alert("Please Enter your Email in the Extension.");
     } else {
       alert("Folder not found for this Client.");
@@ -289,4 +292,23 @@ function getFileName(response) {
     }
   }
   return null;
+}
+
+function unidecode(str) {
+  str = str.normalize('NFD');
+  str = str.replace(/[\u0300-\u036f]/g, '');
+  let additionalMappings = {
+      'œ': 'oe',
+      'æ': 'ae',
+      'ç': 'c',
+      'Œ': 'OE',
+      'Æ': 'AE',
+      'Ç': 'C'
+  };
+
+  str = str.replace(/[\u0153\u0152\u00E6\u00C6\u00E7\u00C7]/g, function(match) {
+      return additionalMappings[match] || match;
+  });
+
+  return str;
 }
