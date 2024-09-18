@@ -259,7 +259,7 @@ async function uploadToDrive() {
     if (!accessToken) {
       alert("Please Enter your Email in the Extension.");
     } else {
-      alert("Folder not found for this Client.");
+      alert("Cette succession ne fait pas partie des successions traitées avec Klero Généalogie.\nEn cas d'erreur merci de contacter Louis.fleury@klero.fr");
     }
     return false;
   }
