@@ -46,7 +46,7 @@ async function checkFolderInTarget() {
   const element = document.querySelector(".table-request-display tbody tr td:nth-child(2)");
   if (element) {
     const name = element.textContent;
-    const folderId = await getTargetFolderId(name, [folder2Group,folder3Group,folder4Group,folder5Group]);
+    const folderId = await getTargetFolderId(name, [folder2Group,folder3Group,folder4Group,folder5Group,folder6Group]);
     const button = document.getElementById("uploadButton");
 
     if (accessToken) {
@@ -103,10 +103,10 @@ async function addMessageCell(row) {
     if (!accessToken) {
       messageContainer.textContent = "Error";
       messageContainer.style.backgroundColor = "#E74C3C";
-    } else if (await getTargetFolderId(name, [folder1Group])) {
+    } else if (await getTargetFolderId(name, [folder0Group,folder1Group])) {
       messageContainer.textContent = "Pending";
       messageContainer.style.backgroundColor = "#E74C3C";
-    } else if (await getTargetFolderId(name, [folder2Group,folder3Group,folder4Group,folder5Group])) {
+    } else if (await getTargetFolderId(name, [folder2Group,folder3Group,folder4Group,folder5Group,folder6Group])) {
       messageContainer.textContent = "Done";
       messageContainer.style.backgroundColor = "#27AE60";
     } else {

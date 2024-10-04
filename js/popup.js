@@ -24,11 +24,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 {
                   email: email,
                   password: password,
+                  folderId0: notaryData["2.2"]||"",
                   folderId1: notaryData["2.3"]||"",
                   folderId2: notaryData["2.4"]||"",
                   folderId3: notaryData["3.1"]||"",
                   folderId4: notaryData["3.2"]||"",
-                  folderId5: notaryData["4"]||"",
+                  folderId5: notaryData["4.1"]||"",
+                  folderId6: notaryData["4.2"]||"",
                 },
                 function () {
                   window.close();

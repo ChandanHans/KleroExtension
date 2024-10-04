@@ -69,31 +69,70 @@ async function getTargetFolderId(name, parentFolderList) {
 }
 
 /**
- * Moves a folder from parentFolderId1 to parentFolderId2.
- * @param {string} folderId - The ID of the folder to move.
+ * Fetches the current parent ID of a folder.
+ * @param {string} folderId - The ID of the folder.
+ * @returns {string|null} - The current parent ID of the folder or null if not found.
  */
-async function moveFolder(folderId) {
+async function getCurrentParentId(folderId) {
   try {
     const response = await fetch(
-      `https://www.googleapis.com/drive/v3/files/${folderId}?addParents=${parentFolderId2}&removeParents=${parentFolderId1}`,
+      `https://www.googleapis.com/drive/v3/files/${folderId}?fields=parents`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.parents ? data.parents[0] : null; // Return the first parent ID
+    } else {
+      console.log("Error fetching current parent ID:", response.statusText);
+      return null;
+    }
+  } catch (error) {
+    console.log("Error fetching current parent ID:", error);
+    return null;
+  }
+}
+
+/**
+ * Moves a folder to a new parent folder.
+ * @param {string} folderId - The ID of the folder to move.
+ * @returns {boolean} - True if the folder was moved successfully, false otherwise.
+ */
+async function moveFolder(folderId) {
+  const currentParentId = await getCurrentParentId(folderId);
+
+  if (!currentParentId) {
+    console.log("Current parent ID not found.");
+    return false;
+  }
+
+  try {
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${folderId}?addParents=${parentFolderId2}&removeParents=${currentParentId}`,
       {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${accessToken}`,
         },
       }
     );
 
     if (response.ok) {
       console.log("Folder moved successfully.");
-      return true
+      return true;
     } else {
       console.log("Error moving folder:", response.statusText);
+      return false;
     }
   } catch (error) {
     console.log("Error moving folder:", error);
+    return false;
   }
-  return false;
 }
 
 /**
@@ -254,7 +293,7 @@ async function uploadToDrive() {
   }
 
   const name = element.textContent;
-  const folderId = await getTargetFolderId(name, [folder1Group]);
+  const folderId = await getTargetFolderId(name, [folder0Group,folder1Group]);
   if (!folderId) {
     if (!accessToken) {
       alert("Please Enter your Email in the Extension.");
